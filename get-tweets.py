@@ -50,12 +50,10 @@ class KafkaListener(StreamListener):
     #event handler for new data
     def on_data(self, data):
         #next 2 lines might be better to put outside of the listener? YEAH! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        cluster = kafka.KafkaClient("kafkaip:9092")
-        prod = kafka.SimpleProducer(cluster, async = False)
         topic = "tweets"
         #msg_list = #here could be a line that agregates tweets in self.tweetlist and sends it when it's long enough.
-        msg_list = data.append
-        prod.send_messages(topic, *msg_list)
+        tweet = data
+        prod.send_messages(topic, tweet)
 
     # this is the event handler for errors
     def on_error(self, status):
@@ -67,7 +65,12 @@ class KafkaListener(StreamListener):
         print(status)
 
 if __name__ == '__main__':
-    listener = StdOutListener(file_dir + "/tweets.txt")
+    #kafka cluster and producer
+    cluster = kafka.KafkaClient("localhost:9092")
+    prod = kafka.SimpleProducer(cluster, async = False, batch_send_every_n=20, batch_send_every_t=60)
+
+    #listener = StdOutListener(file_dir + "/tweets.txt")
+    listener = KafkaListener()
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
 

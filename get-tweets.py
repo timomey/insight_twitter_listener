@@ -8,6 +8,7 @@ from datetime import datetime
 from pprint import pprint
 import json
 import os
+import kafka
 
 
 # loads Twitter credentials from .twitter file that is in the same directory as this script
@@ -36,7 +37,30 @@ class StdOutListener(StreamListener):
         with open(self.filename, 'ab') as f:
             print "writing to {}".format(self.filename)
             f.write(data)
-        f.closed
+        #f.closed #results into True if the file is closed.
+
+class KafkaListener(StreamListener):
+    """ A listener handles tweets that are the received from the stream.
+    This is a basic listener that saves tweeots to kafka.
+    """
+    def __init__(self):
+        #tweetlist can be used to store some more tweets and push them out at once instead of individually
+        self.tweetlist = list()
+
+    #event handler for new data
+    def on_data(self, data):
+        #next 2 lines might be better to put outside of the listener? YEAH! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        cluster = kafka.KafkaClient("kafkaip:9092")
+        prod = kafka.SimpleProducer(cluster, async = False)
+        topic = "tweets"
+        #msg_list = #here could be a line that agregates tweets in self.tweetlist and sends it when it's long enough.
+        msg_list = data.append
+        prod.send_messages(topic, *msg_list)
+
+    # this is the event handler for errors
+    def on_error(self, status):
+        print(status)
+
 
     # this is the event handler for errors
     def on_error(self, status):

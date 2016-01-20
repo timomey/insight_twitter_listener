@@ -39,13 +39,19 @@ class StdOutListener(StreamListener):
             f.write(data)
         #f.closed #results into True if the file is closed.
 
+        # this is the event handler for errors
+        def on_error(self, status):
+            print('ERRORSTATUS')
+            print(status)
+
 class KafkaListener(StreamListener):
     """ A listener handles tweets that are the received from the stream.
     This is a basic listener that saves tweeots to kafka.
     """
-    def __init__(self):
+    def __init__(self,producer):
         #tweetlist can be used to store some more tweets and push them out at once instead of individually
-        self.tweetlist = list()
+        #self.tweetlist = list()
+        self.producer = producer
 
     #event handler for new data
     def on_data(self, data):
@@ -53,24 +59,24 @@ class KafkaListener(StreamListener):
         topic = "tweets"
         #msg_list = #here could be a line that agregates tweets in self.tweetlist and sends it when it's long enough.
         tweet = data
-        prod.send_messages(topic, tweet)
+        prod = self.producer
+        prod.send_messages(topic, tweet.encode('utf-8'))
 
     # this is the event handler for errors
     def on_error(self, status):
+        print('ERRORSTATUS')
         print(status)
 
 
-    # this is the event handler for errors
-    def on_error(self, status):
-        print(status)
+
 
 if __name__ == '__main__':
     #kafka cluster and producer
     cluster = kafka.KafkaClient("localhost:9092")
-    prod = kafka.SimpleProducer(cluster, async = False, batch_send_every_n=20, batch_send_every_t=60)
+    prod = kafka.SimpleProducer(cluster, async = False, batch_send_every_n=20)
 
     #listener = StdOutListener(file_dir + "/tweets.txt")
-    listener = KafkaListener()
+    listener = KafkaListener(prod)
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
 

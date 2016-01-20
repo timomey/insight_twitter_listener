@@ -66,7 +66,13 @@ class KafkaListener(StreamListener):
     def on_error(self, status):
         print('ERRORSTATUS')
         print(status)
-
+        logfilename = 'tweetslog.txt'
+        if not os.path.isfile(logfilename):    # check if file doesn't exist
+            f = file(logfilename, 'w')
+            f.close()
+        with open(logfilename, 'ab') as f:
+            f.write(datetime.now())
+	        f.write(status)
 
 
 

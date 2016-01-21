@@ -58,7 +58,7 @@ class KafkaListener(StreamListener):
         #next 2 lines might be better to put outside of the listener? YEAH! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         topic = "tweets"
         #msg_list = #here could be a line that agregates tweets in self.tweetlist and sends it when it's long enough.
-        tweet = data
+        tweet = data.strip()
         prod = self.producer
         prod.send_messages(topic, tweet.encode('utf-8'))
 
